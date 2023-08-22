@@ -2,7 +2,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const port = 3000;
-const IP_ADDRESS = '192.168.1.79';
+const IP_ADDRESS = '192.168.56.1';
 
 
 app.set('view engine', 'ejs');
@@ -37,12 +37,28 @@ db.serialize(() => {
         )
     `);
 });
-//start page
-app.get('/home', (req, res) => {
-    res.render('index')
-});
 
-//add coursepage
+//main page
+app.get('/', (req, res) => {
+    db.all(`SELECT * FROM courses`, [], (err, courses) => {
+        if (err) {
+            console.error(err.message);
+            return;
+        }
+
+        db.all(`SELECT * FROM lecturers`, [], (err, lecturers) => {
+            if (err) {
+                console.error(err.message);
+                return;
+            }
+
+            res.render('index', { courses, lecturers });
+        });
+    });
+});
+//-------------------------------------------------------------------------------------------------------------------------------------------
+
+// Directs you to add course page
 app.get('/add_course', (req, res) => {
     db.all(`SELECT * FROM courses`, [], (err, courses) => {
         if (err) {
@@ -60,8 +76,10 @@ app.get('/add_course', (req, res) => {
         });
     });
 });
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//view all courses
+
+//view all the courses
 app.get('/view_courses', (req, res) => {
     db.all(`SELECT * FROM courses`, [], (err, courses) => {
         if (err) {
@@ -80,8 +98,9 @@ app.get('/view_courses', (req, res) => {
     });
 });
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//get all courses
+//get all courses endpoint
 app.get('/courses', (req, res) => {
     db.all(`SELECT * FROM courses`, [], (err, courses) => {
         if (err) {
@@ -93,48 +112,10 @@ app.get('/courses', (req, res) => {
     });
 });
 
-
-//get only one course
-app.get('/courses/:id', (req, res) => {
-    const courseId = req.params.id;
-
-    db.get(`SELECT * FROM courses WHERE id = ?`, [courseId], (err, course) => {
-        if (err) {
-            console.error(err.message);
-            res.status(500).json({ error: 'Failed to fetch course' });
-        } else {
-            if (course) {
-                res.status(200).json(course);
-            } else {
-                res.status(404).json({ error: 'Course not found' });
-            }
-        }
-    });
-});
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-app.get('/', (req, res) => {
-    db.all(`SELECT * FROM courses`, [], (err, courses) => {
-        if (err) {
-            console.error(err.message);
-            return;
-        }
-
-        db.all(`SELECT * FROM lecturers`, [], (err, lecturers) => {
-            if (err) {
-                console.error(err.message);
-                return;
-            }
-
-            res.render('index', { courses, lecturers });
-        });
-    });
-});
-
-// ...
-//Adding courses
+//Adding courses form the course button
 app.post('/courses/create', (req, res) => {
     const { course_image, title, description, course_material, lecturer_id } = req.body;
 
@@ -142,12 +123,12 @@ app.post('/courses/create', (req, res) => {
         if (err) {
             console.error(err.message);
         }
-        res.redirect('/');
+        res.redirect('/view_courses');
     });
 });
 
-// Update a course
-
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+// Update a course form
 app.get('/editCourse/:id', (req, res) => {
     const courseId = req.params.id;
 
@@ -169,6 +150,7 @@ app.get('/editCourse/:id', (req, res) => {
     });
 });
 
+//update course button
 app.post('/editCourse/:id', (req, res) => {
     const courseId = req.params.id;
     const { course_image, title, description, course_material, lecturer_id } = req.body;
@@ -186,7 +168,7 @@ app.post('/editCourse/:id', (req, res) => {
     );
 });
 
-
+//-----------------------------------------------------------------------------------------------------------------------------------------------
 app.post('/deleteCourse/:id', (req, res) => {
     const courseId = req.params.id;
 
@@ -197,23 +179,12 @@ app.post('/deleteCourse/:id', (req, res) => {
             console.error('Error deleting course:', err.message);
             return res.status(500).send('Error deleting course');
         }
-        res.redirect('/');
-    });
-});
-// Delete a course
-app.delete('/courses/:id', (req, res) => {
-    const courseId = req.params.id;
-
-    db.run(`DELETE FROM courses WHERE id = ?`, [courseId], (err) => {
-        if (err) {
-            console.error(err.message);
-        }
-        res.redirect('view_course');
+        res.redirect('/view_courses');
     });
 });
 
 
-
+//-----------------------------------------------------------------------------------------------------------------------------------------------
 // Add Lecture page
 app.get('/add_lecturer', (req, res) => {
     res.render('add_lectures')
@@ -230,8 +201,26 @@ app.get('/all_lectures', (req, res) => {
         }
     });
 });
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+//view_one course
+app.get('/viewCourse/:id', (req, res) => {
+    const courseId = req.params.id;
+    const { course_image, title, description, course_material, lecturer_id } = req.body;
+    // Fetch the course details from the database using courseId
+    // You would typically fetch the course details using your database logic
+    const course = {
+      id: courseId,
+      title: title,
+      description: description,
+      course_image: course_image,
+      course_material_vid : course_material,
+      lect : lecturer_id
+    };
+    res.render('viewCourse', { course }); // Render the viewCourse.ejs template with course details
+  });
 
-
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+  
 //Create A proffessor
 app.post('/lecturers/create', (req, res) => {
     const { name } = req.body;

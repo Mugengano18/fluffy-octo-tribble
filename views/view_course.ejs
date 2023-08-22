@@ -34,7 +34,7 @@
       <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="/home">HOME</a>
+            <a class="nav-link" href="/">HOME</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/view_courses">COURSES</a>
@@ -66,8 +66,8 @@
                   <form action="/deleteCourse/<%= course.id %>" method="post">
                     <button type="submit" class="btn btn-danger">Delete</button>
                   </form>
-                  <a href="/viewCourse/<%= course.id %>" type="button" class="btn btn-success" data-bs-toggle="modal"
-                    data-bs-target="#exampleModal">View</a>
+                  <a href="/courses/<%= course.id %>" type="button" class="btn btn-success" data-bs-toggle="modal"
+                    data-bs-target="#viewCourseModal<%= course.id %>">View</a>
                 </div>
               </td>
             </tr>
@@ -76,16 +76,16 @@
       </table>
     </div>
     <!-- Modal -->
-    <% for (const course of courses) { %>
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <% courses.forEach(course => { %>
+      <div class="modal fade" id="viewCourseModal<%= course.id %>" tabindex="-1" aria-labelledby="viewCourseModalLabel<%= course.id %>" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">Course Description</h1>
+              <h5 class="modal-title fs-5" id="viewCourseModalLabel<%= course.id %>"><%= course.title %></h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <img src="<%= course.course_image  %>" alt="course_image" srcset="" width="50" height="60">
+              <img src="data:image/jpeg;base64,<%= course.course_image.toString('base64') %>" alt="course_image" srcset="" width="100" height="80">
               <p>
                 <%= course.description %>
               </p>
@@ -98,7 +98,7 @@
           </div>
         </div>
       </div>
-      <% } %>
+      <% }); %>
   </section>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
